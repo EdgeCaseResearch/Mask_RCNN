@@ -75,7 +75,7 @@ def apply_mask(image, mask, color, alpha=0.5):
 
 def display_instances(image, boxes, masks, class_ids, class_names,
                       scores=None, title="",
-                      figsize=(16, 16), ax=None):
+                      figsize=(16, 16), ax=None, save_name=None):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -143,8 +143,13 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             p = Polygon(verts, facecolor="none", edgecolor=color)
             ax.add_patch(p)
     ax.imshow(masked_image.astype(np.uint8))
-    plt.show()
-    
+    if save_name is not None:
+        plt.savefig(save_name, bbox_inches='tight')
+    else:
+        plt.show()
+
+    return masked_image.astype(np.uint8)
+
 
 def draw_rois(image, rois, refined_rois, mask, class_ids, class_names, limit=10):
     """

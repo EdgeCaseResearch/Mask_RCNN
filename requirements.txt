@@ -1,0 +1,12 @@
+numpy
+jupyter
+scikit-image
+scipy
+Pillow
+cython
+h5py
+tensorflow
+tensorflow-gpu
+keras
+opencv-python
+tqdm
