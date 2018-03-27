@@ -2,4 +2,7 @@
 __pycache__/
 mask_rcnn_coco.h5
 .idea/
-
+logs
+pittsburgh
+pittsburgh_images
+tensorflow_logs
