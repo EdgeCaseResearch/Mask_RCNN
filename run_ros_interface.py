@@ -2,10 +2,11 @@
 
 import os
 
+from PIL import Image as pil
+
 import rospy
 import actionlib
 import sut_actionlib_msgs.msg
-# from sut_actionlib_msgs.msg import boundingBoxes, boundingBox
 
 from classifier import classifier
 from coco_dataset import CocoDataset, CocoConfig
@@ -14,7 +15,9 @@ from ros_utils import *
 
 class MaskRCNNAction(object):
     # _feedback = sut_actionlib_msgs.msg.CheckForObjectsFeedback()
-    _result = sut_actionlib_msgs.msg.CheckForObjectsActionResult()
+    _result = sut_actionlib_msgs.msg.CheckForObjectsResult()
+
+    _classifier = []
 
     def __init__(self, name):
         self._action_name = name
@@ -40,11 +43,11 @@ class MaskRCNNAction(object):
         rospy.loginfo('%s: CNN initialized' % self._action_name)
 
     def createBBox(self, results, timestamp):
-        bbox_msg = sut_actionlib_msgs.msg.boundingBoxes()
+        bbox_msg = sut_actionlib_msgs.msg.BoundingBoxes()
         bbox_msg.header.stamp = timestamp
 
         for r, classname, prob in zip(results['rois'], results['classnames'], results['scores']):
-            bbox = sut_actionlib_msgs.msg.boundingBox()
+            bbox = sut_actionlib_msgs.msg.BoundingBox()
             bbox.Class = classname
             bbox.probability = prob
             bbox.ymin = r[0]
@@ -57,10 +60,14 @@ class MaskRCNNAction(object):
 
         return bbox_msg
 
-    def classify_image(img_msg):
+    def classify_image(self, img_msg):
         [im, timestamp] = convertImgMsgToNumpy(img_msg)
 
-        [colored_im, results] = self._classifier.classifySimple(image)
+        # print(im.shape)
+        # pim = pil.fromarray(im)
+        # pim.show()
+
+        [colored_im, results] = self._classifier.classifySimple(im, output_name='tmp.jpg', verbose=0)
         # im = pil.fromarray(colored_im)
         # im.show()
 

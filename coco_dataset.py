@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import numpy as np
-from config import Config
 import coco
 from visualize import random_colors
 
@@ -45,6 +44,7 @@ class CocoDataset:
     #     "motorcycle": 125,
     #     "bicycle": 128,
     # }
+
 
 class CocoConfig(coco.CocoConfig):
     NAME = "coco"

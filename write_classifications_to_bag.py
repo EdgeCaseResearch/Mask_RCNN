@@ -16,14 +16,14 @@ from PIL import Image as pil
 from classifier import classifier
 from cityscapes_dataset import CityscapesDataset, CityscapesConfig
 from coco_dataset import CocoDataset, CocoConfig
-from ros_utils import converNumpyToImgMsg
+from ros_utils import *
 
 
 # rois: [N, (y1, x1, y2, x2)] detection bounding boxes
-def createRois(rois, timestamp):
+def createRois(results, timestamp):
     roi_msg = roi_list()
 
-    for r in rois:
+    for r in results['rois']:
         roi = RegionOfInterest()
         roi.y_offset = r[0]
         roi.x_offset = r[1]
@@ -49,6 +49,10 @@ parser.add_argument('--outbag',
                     type=str,
                     metavar="<outbag>",
                     help='Optionally save to a new bag')
+parser.add_argument('--image_topic',
+                    type=str,
+                    metavar="<image_topic>",
+                    help='Optional custom image topic [default: /monocular_camera/image]')
 parser.add_argument('--skip',
                     type=int,
                     default=1,
@@ -70,7 +74,10 @@ else:
     bag = rosbag.Bag(args.bagfile, 'a')
     outbag = bag
 
-image_topic = "/monocular_camera/image"
+if args.image_topic:
+    image_topic = args.image_topic
+else:
+    image_topic = "/monocular_camera/image"
 
 # Count the number of images in this bag. Takes a few seconds but it's worth it
 im_count = 0
@@ -117,11 +124,11 @@ for topic, msg, t in bag.read_messages(topics=[image_topic]):
         # im = pil.fromarray(image)
         # im.show()
 
-        [colored_im, colored_label_im, label_im, instance_im, rois] = classify_dataset.classifyImage(image, "junk.png")
+        [colored_im, colored_label_im, label_im, instance_im, results] = classify_dataset.classifyImage(image, verbose=0)
         # im = pil.fromarray(colored_im)
         # im.show()
 
-        roi_msg = createRois(rois, msg.header.stamp)
+        roi_msg = createRois(results, msg.header.stamp)
 
         colored_img = convertNumpyToImgMsg(colored_im, msg.header.stamp)
         label_img = convertNumpyToImgMsg(label_im, msg.header.stamp)
@@ -139,6 +146,7 @@ for topic, msg, t in bag.read_messages(topics=[image_topic]):
             outbag.write("/coco_label", label_img, t)
             outbag.write("/coco_instance", instance_img, t)
             outbag.write("/coco_rois", roi_msg, t)
+
 
 pbar.close()
 bag.close()

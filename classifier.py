@@ -64,14 +64,14 @@ class classifier():
     def setDataset(self, dataset):
         self.dataset = dataset
 
-    def classifySimple(self, image, output_name=None):
+    def classifySimple(self, image, output_name=None, verbose=0):
         # Run detection
         # Returns a list of dicts, one dict per image. The dict contains:
         # rois: [N, (y1, x1, y2, x2)] detection bounding boxes
         # class_ids: [N] int class IDs
         # scores: [N] float probability scores for the class IDs
         # masks: [H, W, N] instance binary masks
-        results = self.model.detect([image], verbose=0)
+        results = self.model.detect([image], verbose=verbose)
 
         # Visualize results
         r = results[0]
@@ -87,20 +87,17 @@ class classifier():
 
         return [colored_im, r]
 
-    def classifyImage(self, image, output_name=None):
-        [colored_im, r] = self.classifySimple(image, output_name)
+    def classifyImage(self, image, output_name=None, verbose=0):
+        [colored_im, r] = self.classifySimple(image, output_name=output_name, verbose=verbose)
 
         colored_label_im = np.zeros((image.shape[0], image.shape[1], 3), dtype='uint8')
         label_im = np.zeros((image.shape[0], image.shape[1]), dtype='uint8')
         instance_im = np.zeros((image.shape[0], image.shape[1]), dtype='uint8')
-        rois = []
 
         for i, class_id, roi, score in zip(np.arange(len(r['class_ids'])), r['class_ids'], r['rois'], r['scores']):
             mask = r['masks'][:, :, i]
             inds = (mask > 0)
             # print(i, self.dataset.class_names[class_id])
-
-            rois.append(roi)
 
             key = None
             if self.dataset.class_names[class_id] in self.dataset.labels.values():
@@ -113,7 +110,7 @@ class classifier():
             if self.dataset.class_names[class_id] in self.dataset.instanceids.keys():
                 instance_im[inds] = self.dataset.instanceids[self.dataset.class_names[class_id]]
 
-        return [colored_im, colored_label_im, label_im, instance_im, rois]
+        return [colored_im, colored_label_im, label_im, instance_im, r]
 
     # Run classification on a directory of images
     def classify(self):
