@@ -6,3 +6,5 @@ logs
 pittsburgh
 pittsburgh_images
 tensorflow_logs
+catkin_ws/devel/
+catkin_ws/build/
