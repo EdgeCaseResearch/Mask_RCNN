@@ -1,0 +1,101 @@
+# ROS actionlib interface for classifying images using MaskRCNN
+
+import os
+
+import rospy
+import actionlib
+import sut_actionlib_msgs.msg
+# from sut_actionlib_msgs.msg import boundingBoxes, boundingBox
+
+from classifier import classifier
+from coco_dataset import CocoDataset, CocoConfig
+from ros_utils import *
+
+
+class MaskRCNNAction(object):
+    # _feedback = sut_actionlib_msgs.msg.CheckForObjectsFeedback()
+    _result = sut_actionlib_msgs.msg.CheckForObjectsActionResult()
+
+    def __init__(self, name):
+        self._action_name = name
+
+        self.init_models()
+
+        self._as = actionlib.SimpleActionServer(self._action_name, sut_actionlib_msgs.msg.CheckForObjectsAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as.start()
+
+    def init_models(self):
+        # Root directory of the project
+        ROOT_DIR = os.getcwd()
+
+        # Directory to save logs and trained model
+        MODEL_DIR = os.path.join(ROOT_DIR, "tensorflow_logs")
+
+        self._classifier = classifier(modelname="coco")
+        self._classifier.setInferenceConfig(CocoConfig())
+        self._classifier.setDataset(CocoDataset())
+        self._classifier.setDirectories(MODEL_DIR)
+        self._classifier.createModel(mode="inference")
+
+        rospy.loginfo('%s: CNN initialized' % self._action_name)
+
+    def createBBox(self, results, timestamp):
+        bbox_msg = sut_actionlib_msgs.msg.boundingBoxes()
+        bbox_msg.header.stamp = timestamp
+
+        for r, classname, prob in zip(results['rois'], results['classnames'], results['scores']):
+            bbox = sut_actionlib_msgs.msg.boundingBox()
+            bbox.Class = classname
+            bbox.probability = prob
+            bbox.ymin = r[0]
+            bbox.ymax = r[2]
+
+            bbox.xmin = r[1]
+            bbox.xmax = r[3]
+
+            bbox_msg.boundingBoxes.append(bbox)
+
+        return bbox_msg
+
+    def classify_image(img_msg):
+        [im, timestamp] = convertImgMsgToNumpy(img_msg)
+
+        [colored_im, results] = self._classifier.classifySimple(image)
+        # im = pil.fromarray(colored_im)
+        # im.show()
+
+        bbox_msg = self.createBBox(results, timestamp)
+
+        colored_img = convertNumpyToImgMsg(colored_im, timestamp)
+        # label_img = convertNumpyToImgMsg(label_im, timestamp)
+        # instance_img = convertNumpyToImgMsg(instance_im, timestamp)
+
+        return [colored_img, bbox_msg]
+
+    def execute_cb(self, goal):
+        # helper variables
+        success = True
+
+        rospy.loginfo("{}: Received image number {}. Processing...".format(self._action_name, goal.id))
+
+        # check that preempt has not been requested by the client. Probably not needed for this module
+        if self._as.is_preempt_requested():
+            rospy.loginfo('%s: Preempted' % self._action_name)
+            self._as.set_preempted()
+            success = False
+        else:
+            [result_img_msg, bbox_msg] = self.classify_image(goal.image)
+
+        if success:
+            self._result.image = result_img_msg
+            self._result.boundingBoxes = bbox_msg
+            self._result.id = goal.id
+
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self._as.set_succeeded(self._result)
+
+
+if __name__ == '__main__':
+    rospy.init_node('ros_mask_rcnn_interface')
+    server = MaskRCNNAction(rospy.get_name())
+    rospy.spin()

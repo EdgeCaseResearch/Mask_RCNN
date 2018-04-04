@@ -16,30 +16,7 @@ from PIL import Image as pil
 from classifier import classifier
 from cityscapes_dataset import CityscapesDataset, CityscapesConfig
 from coco_dataset import CocoDataset, CocoConfig
-
-
-# Taken from https://github.com/ros-perception/vision_opencv/blob/kinetic/cv_bridge/python/cv_bridge/core.py
-# Kinetic's cv_bridge doesn't support python3, so we have to break it out manually
-def createImage(img, timestamp):
-    img_msg = Image()
-    img_msg.height = int(img.shape[0])
-    img_msg.width = int(img.shape[1])
-
-    if len(img.shape) < 3:
-        cv_type = "mono8"
-    else:
-        cv_type = "rgb8"
-    img_msg.encoding = cv_type
-    # print(img.dtype.byteorder)
-    if img.dtype.byteorder == '>':
-        img_msg.is_bigendian = True
-
-    img_msg.data = img.tostring()
-    # print(len(img_msg.data), img_msg.height, img.shape, int(len(img_msg.data) / img_msg.height))
-    img_msg.step = int(len(img_msg.data) / img_msg.height)
-
-    img_msg.header.stamp = timestamp
-    return img_msg
+from ros_utils import converNumpyToImgMsg
 
 
 # rois: [N, (y1, x1, y2, x2)] detection bounding boxes
@@ -134,11 +111,7 @@ for topic, msg, t in bag.read_messages(topics=[image_topic]):
 
         np_arr = np.fromstring(msg.data, np.uint8)
 
-        if msg.encoding == 'rgb8' or msg.encoding == 'bgr8':
-            image = np.resize(np_arr, (msg.height, msg.width, 3))
-        else:
-            image = np.resize(np_arr, (msg.height, msg.width))
-            image = np.stack((image,)*3, axis=-1)
+        [image, timestamp] = convertImgMsgToNumpy(msg)
 
         # `killall display` to close all pil windows:
         # im = pil.fromarray(image)
@@ -150,9 +123,9 @@ for topic, msg, t in bag.read_messages(topics=[image_topic]):
 
         roi_msg = createRois(rois, msg.header.stamp)
 
-        colored_img = createImage(colored_im, msg.header.stamp)
-        label_img = createImage(label_im, msg.header.stamp)
-        instance_img = createImage(instance_im, msg.header.stamp)
+        colored_img = convertNumpyToImgMsg(colored_im, msg.header.stamp)
+        label_img = convertNumpyToImgMsg(label_im, msg.header.stamp)
+        instance_img = convertNumpyToImgMsg(instance_im, msg.header.stamp)
 
         # print(msg.header.stamp, instance_img.header.stamp)
 

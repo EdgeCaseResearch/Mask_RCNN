@@ -64,7 +64,7 @@ class classifier():
     def setDataset(self, dataset):
         self.dataset = dataset
 
-    def classifyImage(self, image, output_name=None):
+    def classifySimple(self, image, output_name=None):
         # Run detection
         # Returns a list of dicts, one dict per image. The dict contains:
         # rois: [N, (y1, x1, y2, x2)] detection bounding boxes
@@ -78,6 +78,17 @@ class classifier():
 
         colored_im = visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
                                                  self.dataset.class_names, r['scores'], save_name=output_name)
+
+        # Also include class names
+        classnames = []
+        for id in r['class_ids']:
+            classnames.append(self.dataset.class_names[id])
+        r['classnames'] = classnames
+
+        return [colored_im, r]
+
+    def classifyImage(self, image, output_name=None):
+        [colored_im, r] = self.classifySimple(image, output_name)
 
         colored_label_im = np.zeros((image.shape[0], image.shape[1], 3), dtype='uint8')
         label_im = np.zeros((image.shape[0], image.shape[1]), dtype='uint8')
