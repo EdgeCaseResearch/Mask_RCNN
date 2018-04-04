@@ -2027,6 +2027,8 @@ class MaskRCNN():
         layers = keras_model.inner_model.layers if hasattr(keras_model, "inner_model")\
             else keras_model.layers
 
+        self.keras_model._make_predict_function()
+
         # Exclude some layers
         if exclude:
             layers = filter(lambda l: l.name not in exclude, layers)
