@@ -3,6 +3,8 @@
 * Docker
 * [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) and all [prerequisites](https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-2.0)#prerequisites)
 
+Make sure you download the latest `mask_rcnn_coco.h5` weights file from [here](https://github.com/matterport/Mask_RCNN/releases) and save it to the `<mask_rcnn_home>/logs/` directory. 
+
 # Docker Instructions
 
 The included Dockerfile will create a container that runs a ROS interface for Mask R-CNN using the following commands:
