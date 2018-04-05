@@ -10,3 +10,6 @@ tensorflow-gpu
 keras
 opencv-python
 tqdm
+rospkg
+catkin_pkg
+

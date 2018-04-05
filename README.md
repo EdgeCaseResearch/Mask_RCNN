@@ -1,3 +1,32 @@
+# Requirements
+
+* Docker
+* [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) and all [prerequisites](https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-2.0)#prerequisites)
+
+# Docker Instructions
+
+The included Dockerfile will create a container that runs a ROS interface for Mask R-CNN using the following commands:
+
+    cd <mask_rcnn home>
+	docker build -t mask_rcnn .
+	docker run --runtime=nvidia -it --net=host mask_rcnn:latest
+	
+`roscore` should already be running on the host machine. 
+	
+By default the container will automatically start the `run_ros_interface.py`. If you want to run a test program or run another container with `roscore`, run the following command: 
+
+	docker run --runtime=nvidia -it --net=host mask_rcnn:latest bash
+	
+Then, within the container, run 
+
+    roscore &
+	jupyter notebook --allow-root
+
+and follow the link that is displayed in the terminal. Open the `ros_interface_test.ipynb` file, then re-run all cells to test if the interface is working. 
+
+# Original Readme:
+----------------
+
 # Mask R-CNN for Object Detection and Segmentation
 
 This is an implementation of [Mask R-CNN](https://arxiv.org/abs/1703.06870) on Python 3, Keras, and TensorFlow. The model generates bounding boxes and segmentation masks for each instance of an object in the image. It's based on Feature Pyramid Network (FPN) and a ResNet101 backbone.

@@ -1,4 +1,5 @@
 # ROS actionlib interface for classifying images using MaskRCNN
+# Copyright 2018 Edge Case Research, LLC
 
 import os
 
@@ -67,7 +68,7 @@ class MaskRCNNAction(object):
         # pim = pil.fromarray(im)
         # pim.show()
 
-        [colored_im, results] = self._classifier.classifySimple(im, output_name='tmp.jpg', verbose=0)
+        [colored_im, results] = self._classifier.classifySimple(im, output_name='tmp.jpg', verbose=0, suppress_display=True)
         # im = pil.fromarray(colored_im)
         # im.show()
 
