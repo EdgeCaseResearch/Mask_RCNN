@@ -1,0 +1,3 @@
+[submodule "catkin_ws/src/tut_common_msgs"]
+	path = catkin_ws/src/tut_common_msgs
+	url = https://github.com/EdgeCaseResearch/tut_common_msgs

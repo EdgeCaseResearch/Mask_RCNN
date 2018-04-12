@@ -8,7 +8,7 @@ import actionlib
 
 from PIL import Image as pil
 
-import sut_actionlib_msgs.msg
+import tut_common_msgs.msg
 from ros_utils import *
 
 parser = argparse.ArgumentParser(
@@ -32,9 +32,9 @@ else:
     image_topic = "/input_image"
 
 
-rospy.init_node("actionlib_client_test")
+rospy.init_node("sut")
 
-client = actionlib.SimpleActionClient('ros_mask_rcnn_interface', sut_actionlib_msgs.msg.CheckForObjectsAction)
+client = actionlib.SimpleActionClient('/sut/check_for_objects', tut_common_msgs.msg.CheckForObjectsAction)
 client.wait_for_server()
 
 message_num = 0
@@ -42,7 +42,7 @@ message_num = 0
 for topic, msg, t in bag.read_messages(topics=[image_topic]):
     print("Sending message {}".format(message_num))
 
-    goal = sut_actionlib_msgs.msg.CheckForObjectsGoal()
+    goal = tut_common_msgs.msg.CheckForObjectsGoal()
     goal.id = message_num
     goal.image = msg
 

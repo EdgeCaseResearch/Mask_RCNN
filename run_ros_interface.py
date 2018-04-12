@@ -7,7 +7,7 @@ from PIL import Image as pil
 
 import rospy
 import actionlib
-import sut_actionlib_msgs.msg
+import tut_common_msgs.msg
 
 from classifier import classifier
 from coco_dataset import CocoDataset, CocoConfig
@@ -15,8 +15,8 @@ from ros_utils import *
 
 
 class MaskRCNNAction(object):
-    # _feedback = sut_actionlib_msgs.msg.CheckForObjectsFeedback()
-    _result = sut_actionlib_msgs.msg.CheckForObjectsResult()
+    # _feedback = tut_common_msgs.msg.CheckForObjectsFeedback()
+    _result = tut_common_msgs.msg.CheckForObjectsResult()
 
     _classifier = []
 
@@ -25,7 +25,7 @@ class MaskRCNNAction(object):
 
         self.init_models()
 
-        self._as = actionlib.SimpleActionServer(self._action_name, sut_actionlib_msgs.msg.CheckForObjectsAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as = actionlib.SimpleActionServer(self._action_name, tut_common_msgs.msg.CheckForObjectsAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
 
     def init_models(self):
@@ -44,11 +44,11 @@ class MaskRCNNAction(object):
         rospy.loginfo('%s: CNN initialized' % self._action_name)
 
     def createBBox(self, results, timestamp):
-        bbox_msg = sut_actionlib_msgs.msg.BoundingBoxes()
+        bbox_msg = tut_common_msgs.msg.BoundingBoxes()
         bbox_msg.header.stamp = timestamp
 
         for r, classname, prob in zip(results['rois'], results['classnames'], results['scores']):
-            bbox = sut_actionlib_msgs.msg.BoundingBox()
+            bbox = tut_common_msgs.msg.BoundingBox()
             bbox.Class = classname
             bbox.probability = prob
             bbox.ymin = r[0]
@@ -104,6 +104,6 @@ class MaskRCNNAction(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node('ros_mask_rcnn_interface')
-    server = MaskRCNNAction(rospy.get_name())
+    rospy.init_node('sut_actionlib_server')
+    server = MaskRCNNAction('/sut/check_for_objects')
     rospy.spin()
