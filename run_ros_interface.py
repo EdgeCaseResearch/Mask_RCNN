@@ -8,6 +8,7 @@ from PIL import Image as pil
 import rospy
 import actionlib
 import tut_common_msgs.msg
+from sensor_msgs.msg import Image
 
 from classifier import classifier
 from coco_dataset import CocoDataset, CocoConfig
@@ -27,6 +28,8 @@ class MaskRCNNAction(object):
 
         self._as = actionlib.SimpleActionServer(self._action_name, tut_common_msgs.msg.CheckForObjectsAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
+
+        self._image_pub = rospy.Publisher('/sut/detection_image', Image, queue_size=1)
 
     def init_models(self):
         # Root directory of the project
@@ -101,6 +104,8 @@ class MaskRCNNAction(object):
 
             rospy.loginfo('%s: Succeeded' % self._action_name)
             self._as.set_succeeded(self._result)
+
+            self._image_pub.publish(result_img_msg)
 
 
 if __name__ == '__main__':
