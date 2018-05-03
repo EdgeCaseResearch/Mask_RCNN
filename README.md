@@ -17,17 +17,22 @@ The included Dockerfile will create a container that runs a ROS interface for Ma
 
     cd <mask_rcnn home>
 	docker build -t mask_rcnn .
+
+By default, if `roscore` is running on the host machine, the container will automatically start the `run_ros_interface.py`:
+
 	docker run --runtime=nvidia -it --net=host mask_rcnn:latest
 	
-`roscore` should already be running on the host machine. 
 	
-By default the container will automatically start the `run_ros_interface.py`. If you want to run a test program or run another container with `roscore`, run the following command: 
+If you want to run a test program or run another container with `roscore`, run the following command: 
 
 	docker run --runtime=nvidia -it --net=host mask_rcnn:latest bash
 	
 Then, within the container, run 
 
+    source /opt/ros/kinetic/setup.sh
+    source catkin_ws/devel/setup.sh
     roscore &
+    python3 run_ros_interface.py &
 	jupyter notebook --allow-root
 
 and follow the link that is displayed in the terminal. Open the `ros_interface_test.ipynb` file, then re-run all cells to test if the interface is working. 
