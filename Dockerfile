@@ -20,7 +20,21 @@ RUN apt-get update && apt-get install -y \
 	python3-tk
 
 # Run them like this so docker can cache the results
-RUN pip3 install numpy jupyter scikit-image scipy Pillow cython h5py tensorflow tensorflow-gpu keras opencv-python tqdm rospkg catkin_pkg
+RUN pip3 install \
+    numpy \
+    jupyter \
+    scikit-image \
+    scipy \
+    Pillow \
+    cython \
+    h5py \
+    tensorflow \
+    tensorflow-gpu \
+    keras==2.1.6 \
+    opencv-python \
+    tqdm \
+    rospkg \
+    catkin_pkg
 
 # Requires cython is installed first:
 RUN pip3 install pycocotools
