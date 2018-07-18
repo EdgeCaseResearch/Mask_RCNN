@@ -1966,10 +1966,15 @@ class MaskRCNN():
                                               config.MASK_POOL_SIZE,
                                               config.NUM_CLASSES)
 
+#             model = KM.Model([input_image, input_image_meta],
+#                              [detections, mrcnn_class, mrcnn_bbox,
+#                                  mrcnn_mask, rpn_rois, rpn_class, rpn_bbox],
+#                              name='mask_rcnn')
+            print("Output is mrcnn_class only!")
             model = KM.Model([input_image, input_image_meta],
-                             [detections, mrcnn_class, mrcnn_bbox,
-                                 mrcnn_mask, rpn_rois, rpn_class, rpn_bbox],
+                             mrcnn_class,
                              name='mask_rcnn')
+            print("outputs is a {} \r\n\twith content {}\r\n\t and attributes {}".format(type(model.output), model.output, dir(model.output)))
 
         # Add multi-GPU support.
         if config.GPU_COUNT > 1:
@@ -2010,7 +2015,7 @@ class MaskRCNN():
         exlude: list of layer names to excluce
         """
         import h5py
-        from keras.engine import topology
+        from keras.engine import saving
 
         if exclude:
             by_name = True
@@ -2034,9 +2039,9 @@ class MaskRCNN():
             layers = filter(lambda l: l.name not in exclude, layers)
 
         if by_name:
-            topology.load_weights_from_hdf5_group_by_name(f, layers)
+            saving.load_weights_from_hdf5_group_by_name(f, layers)
         else:
-            topology.load_weights_from_hdf5_group(f, layers)
+            saving.load_weights_from_hdf5_group(f, layers)
         if hasattr(f, 'close'):
             f.close()
 
