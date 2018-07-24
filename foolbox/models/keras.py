@@ -33,10 +33,7 @@ class KerasModel(DifferentiableModel):
             bounds,
             channel_axis=3,
             preprocessing=(0, 1),
-            predicts='probabilities',
-            image_input_idx=None,
-            output_idx=None,
-            num_classes=None):
+            predicts='probabilities'):
 
         super(KerasModel, self).__init__(bounds=bounds,
                                          channel_axis=channel_axis,
@@ -53,40 +50,19 @@ class KerasModel(DifferentiableModel):
         assert predicts in ['probabilities', 'logits']
 
         images_input = model.input
-        assert not (isinstance(images_input, list) and image_input_idx is None), "If there are multiple inputs, the image input must be specified"
-        aux_inputs = []
-        if isinstance(images_input, list):
-            for i, input_tensor in enumerate(images_input):
-                if i != image_input_idx:
-                    aux_inputs.append(K.placeholder(shape=input_tensor.shape))
-            images_input = images_input[image_input_idx]
-            
         label_input = K.placeholder(shape=(1,))
-        predictions = model.output
-        assert not (isinstance(predictions, list) and output_idx is None), "If there are multiple outputs, the output with detections must be specified"
-        if isinstance(predictions, list):
-            predictions = predictions[output_idx]
 
-        if num_classes is None:
-            shape = K.int_shape(predictions)
-            print("Shape of predictions is {}".format(shape))
-            num_classes = None
-            for i, dim in enumerate(shape):
-                if i == len(shape) - 1:
-                    num_classes = dim
-            assert num_classes is not None
-            
-        print("Number of classes: {}".format(num_classes))
+        predictions = model.output
+
+        shape = K.int_shape(predictions)
+        _, num_classes = shape
+        assert num_classes is not None
+
         self._num_classes = num_classes
 
         if predicts == 'probabilities':
             if K.backend() == 'tensorflow':
-                predictions = predictions.op.inputs[0]
-                print("Predictions_shape: {}".format(predictions.shape))
-#                 if output_idx is not None:
-#                     predictions = K.expand_dims(predictions[0,0], axis=0)
-                print("label_input: {}".format(label_input))
-                print("predictions: {}".format(predictions))
+                predictions, = predictions.op.inputs
                 loss = K.sparse_categorical_crossentropy(
                     label_input, predictions, from_logits=True)
             else:
@@ -169,19 +145,14 @@ class KerasModel(DifferentiableModel):
 
     def batch_predictions(self, images):
         px, _ = self._process_input(images)
-        print("px: {}".format(px.shape))
         predictions = self._batch_pred_fn([px])
         assert len(predictions) == 1
         predictions = predictions[0]
-        if len(predictions) > 1:
-            predictions = predictions[0].reshape((1,predictions.shape[1]))
         assert predictions.shape == (images.shape[0], self.num_classes())
         return predictions
 
     def predictions_and_gradient(self, image, label):
-        print("predictions and gradient function")
         px, dpdx = self._process_input(image)
-        print("image shape: {}, label shape: {}".format(image.shape, label))
         predictions, gradient = self._pred_grad_fn([
             px[np.newaxis],
             np.array([label])])

@@ -16,6 +16,7 @@ from .wrappers import CompositeModel  # noqa: F401
 from .tensorflow import TensorFlowModel  # noqa: F401
 from .pytorch import PyTorchModel  # noqa: F401
 from .keras import KerasModel  # noqa: F401
+from .ECRKeras import ECRKerasModel
 from .theano import TheanoModel  # noqa: F401
 from .lasagne import LasagneModel  # noqa: F401
 from .mxnet import MXNetModel  # noqa: F401
