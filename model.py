@@ -1952,7 +1952,9 @@ class MaskRCNN():
             # output is [batch, num_detections, (y1, x1, y2, x2, class_id, score)] in image coordinates
             detections = DetectionLayer(config, name="mrcnn_detection")(
                 [rpn_rois, mrcnn_class, mrcnn_bbox, input_image_meta])
-
+            top_class_unactivated = KL.Lambda(
+                lambda x: x[:,0,:])(mrcnn_class)
+            top_class = KL.ReLU(max_value=1.0, name='top_class')(top_class_unactivated)
             # Convert boxes to normalized coordinates
             # TODO: let DetectionLayer return normalized coordinates to avoid
             #       unnecessary conversions
@@ -1966,16 +1968,11 @@ class MaskRCNN():
                                               config.MASK_POOL_SIZE,
                                               config.NUM_CLASSES)
 
-#             model = KM.Model([input_image, input_image_meta],
-#                              [detections, mrcnn_class, mrcnn_bbox,
-#                                  mrcnn_mask, rpn_rois, rpn_class, rpn_bbox],
-#                              name='mask_rcnn')
-            print("Output is mrcnn_class only!")
             model = KM.Model([input_image, input_image_meta],
-                             mrcnn_class,
+                             [detections, mrcnn_class, mrcnn_bbox,
+                                 mrcnn_mask, rpn_rois, rpn_class, rpn_bbox, top_class],
                              name='mask_rcnn')
-            print("outputs is a {} \r\n\twith content {}\r\n\t and attributes {}".format(type(model.output), model.output, dir(model.output)))
-
+            
         # Add multi-GPU support.
         if config.GPU_COUNT > 1:
             from parallel_model import ParallelModel
@@ -2374,7 +2371,7 @@ class MaskRCNN():
             log("image_metas", image_metas)
         # Run object detection
         detections, mrcnn_class, mrcnn_bbox, mrcnn_mask, \
-            rois, rpn_class, rpn_bbox =\
+            rois, rpn_class, rpn_bbox, top_class =\
             self.keras_model.predict([molded_images, image_metas], verbose=0)
         # Process detections
         results = []

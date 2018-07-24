@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-gpu
+FROM tensorflow/tensorflow
 
 # Install ROS Kinetic
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu xenial main" > /etc/apt/sources.list.d/ros-latest.list' \
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 	python3-tk
 
 # Run them like this so docker can cache the results
-RUN pip3 install numpy jupyter scikit-image scipy Pillow cython h5py tensorflow tensorflow-gpu keras opencv-python tqdm rospkg catkin_pkg
+RUN pip3 install numpy jupyter scikit-image scipy Pillow cython h5py tensorflow keras opencv-python tqdm rospkg catkin_pkg
 
 # Requires cython is installed first:
 RUN pip3 install pycocotools
@@ -44,8 +44,8 @@ RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
 RUN echo "source $(pwd)/devel/setup.sh" >> ~/.bashrc
 
 # Source the CUDA requirements
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda-9.0/lib64
-ENV PATH=${PATH}:/usr/local/cuda-9.0/bin
+# ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda-9.0/lib64
+# ENV PATH=${PATH}:/usr/local/cuda-9.0/bin
 
 WORKDIR /workspace
 
